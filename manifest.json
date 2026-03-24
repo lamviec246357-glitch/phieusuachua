@@ -1,0 +1,92 @@
+{
+  "name": "Phong Vũ – Sửa Chữa & Bảo Hành",
+  "short_name": "Phong Vũ SC",
+  "description": "Quản lý phiếu sửa chữa và bảo hành điện thoại – Cửa hàng Phong Vũ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#003d99",
+  "theme_color": "#007bff",
+  "lang": "vi",
+  "dir": "ltr",
+  "categories": ["business", "utilities", "productivity"],
+
+  "icons": [
+    {
+      "src": "icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-167.png",
+      "sizes": "167x167",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+
+  "screenshots": [],
+
+  "shortcuts": [
+    {
+      "name": "Thêm Phiếu Mới",
+      "short_name": "Thêm mới",
+      "description": "Tạo phiếu sửa chữa mới",
+      "url": "./index.html",
+      "icons": [{ "src": "icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+
+  "prefer_related_applications": false,
+  "display_override": ["standalone", "minimal-ui", "browser"]
+}
