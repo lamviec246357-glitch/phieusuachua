@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- ══ PWA & MOBILE META ══ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Phong Vũ SC">
+  <meta name="application-name" content="Phong Vũ SC">
+  <meta name="theme-color" content="#007bff">
+  <meta name="msapplication-TileColor" content="#007bff">
+  <meta name="msapplication-navbutton-color" content="#007bff">
+  <meta name="description" content="Quản Lý Sửa Chữa & Bảo Hành - Cửa hàng Phong Vũ">
+
+  <title>Phong Vũ – Sửa Chữa & Bảo Hành</title>
+
+  <!-- ══ PWA MANIFEST & ICONS ══ -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="shortcut icon" href="icon-192.png">
+
+  <!-- Apple Splash Screens (iPhone) -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    /* ══ RESET & BASE ══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #007bff;
+      --primary-dark: #0056b3;
+      --primary-glow: rgba(0, 123, 255, 0.35);
+      --bg: #f0f4ff;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      /* Tránh bounce scroll trên iOS */
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      /* Tránh text resize khi xoay màn hình */
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ══ IFRAME CONTAINER ══════════════════════════════════════ */
+    /* Kỹ thuật che banner "Ứng dụng này do một người dùng Google tạo":
+       - Đẩy toàn bộ iframe lên trên bằng margin-top âm
+       - Bù lại bằng cách tăng height tương ứng
+       - overflow: hidden trên wrapper để cắt phần thừa */
+    #app-wrapper {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+      /* Safe area cho iPhone có notch */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      background: #fff;
+    }
+
+    #app-frame {
+      display: block;
+      width: 100%;
+      border: none;
+      outline: none;
+
+      /* ★ Kỹ thuật che banner Google ★
+         Banner cao ~40px → đẩy lên 45px để chắc chắn che hoàn toàn
+         Tăng height tương ứng để không mất nội dung bên dưới          */
+      margin-top: -45px;
+      height: calc(100% + 45px);
+
+      /* Đảm bảo frame không bị cắt nội dung */
+      min-height: calc(100vh + 45px);
+    }
+
+    /* ══ LOADING SCREEN ════════════════════════════════════════ */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      /* Gradient nền loading đẹp */
+      background: linear-gradient(145deg, #003d99 0%, #0056b3 40%, #007bff 100%);
+      /* Fade-out animation khi tải xong */
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #loader.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Logo trên màn hình loading */
+    .loader-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      animation: logoAppear 0.8s ease forwards;
+    }
+    @keyframes logoAppear {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .loader-logo-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .loader-logo-icon svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .loader-logo-text {
+      color: #fff;
+      font-family: -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .loader-logo-sub {
+      color: rgba(255,255,255,0.7);
+      font-family: -apple-system, 'SF Pro Text', 'Segoe UI', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      text-align: center;
+      margin-top: -8px;
+    }
+
+    /* Vòng tròn xoay (spinner) */
+    .loader-spinner {
+      position: relative;
+      width: 48px;
+      height: 48px;
+    }
+    .loader-spinner::before,
+    .loader-spinner::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+    }
+    /* Vòng nền mờ */
+    .loader-spinner::before {
+      inset: 0;
+      border: 3px solid rgba(255,255,255,0.2);
+    }
+    /* Vòng xoay chính */
+    .loader-spinner::after {
+      inset: 0;
+      border: 3px solid transparent;
+      border-top-color: #fff;
+      border-right-color: rgba(255,255,255,0.5);
+      animation: spin 0.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Dots loading phụ */
+    .loader-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .loader-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      animation: dotPulse 1.4s ease infinite;
+    }
+    .loader-dots span:nth-child(1) { animation-delay: 0s; }
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse {
+      0%, 80%, 100% { transform: scale(1); opacity: 0.5; }
+      40% { transform: scale(1.4); opacity: 1; background: #fff; }
+    }
+
+    .loader-status {
+      color: rgba(255,255,255,0.6);
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ══ INSTALL PROMPT (Android) ══════════════════════════════ */
+    #install-prompt {
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      z-index: 9998;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 18px;
+      box-shadow: 0 8px 32px rgba(0,0,255,.15), 0 2px 8px rgba(0,0,0,.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 340px;
+      width: calc(100% - 32px);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 1px solid rgba(0,123,255,0.15);
+    }
+    #install-prompt.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    #install-prompt img {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .install-text { flex: 1; }
+    .install-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+    }
+    .install-text span {
+      font-size: 12px;
+      color: #666;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+    }
+    .install-actions { display: flex; gap: 8px; }
+    .btn-install {
+      padding: 8px 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+    }
+    .btn-dismiss {
+      padding: 8px 10px;
+      background: #f0f0f0;
+      color: #666;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ LOADING SCREEN ══ -->
+  <div id="loader">
+    <div class="loader-logo">
+      <div class="loader-logo-icon">
+        <!-- Icon cờ lê + điện thoại SVG -->
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Thân điện thoại -->
+          <rect x="14" y="6" width="20" height="32" rx="4" fill="white" opacity="0.95"/>
+          <rect x="16" y="9" width="16" height="20" rx="2" fill="#007bff" opacity="0.3"/>
+          <circle cx="24" cy="33" r="2" fill="white" opacity="0.6"/>
+          <!-- Cờ lê -->
+          <path d="M8 24 L18 14" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="7" cy="25" r="3.5" fill="none" stroke="#FFD700" stroke-width="2.2"/>
+          <!-- Tua vít -->
+          <path d="M40 8 L30 18" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M38 6 L42 10" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          <!-- Chữ PV nhỏ trên màn hình -->
+          <text x="18" y="22" font-family="Arial Black" font-size="8" font-weight="900" fill="white" opacity="0.9">PV</text>
+        </svg>
+      </div>
+      <div class="loader-logo-text">Phong Vũ</div>
+      <div class="loader-logo-sub">Sửa Chữa & Bảo Hành</div>
+    </div>
+
+    <div class="loader-spinner"></div>
+
+    <div class="loader-dots">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="loader-status">Đang tải ứng dụng...</div>
+  </div>
+
+  <!-- ══ APP WRAPPER ══ -->
+  <div id="app-wrapper">
+    <iframe
+      id="app-frame"
+      src="https://script.google.com/macros/s/AKfycbwkOtnzq_NpUVEhtp8jsCPi-1_R49kgelESqaiVKu9sZO0NLQUfgdw47N4uYyD1axWR/exec"
+      title="Phong Vũ Quản Lý Sửa Chữa"
+      scrolling="yes"
+      allow="camera; microphone; geolocation; clipboard-write; accelerometer; gyroscope"
+      allowfullscreen
+      loading="eager"
+    ></iframe>
+  </div>
+
+  <!-- ══ INSTALL PROMPT (PWA) ══ -->
+  <div id="install-prompt">
+    <img src="icon-192.png" alt="Phong Vũ SC" onerror="this.style.display='none'">
+    <div class="install-text">
+      <strong>Cài đặt ứng dụng</strong>
+      <span>Thêm vào màn hình chính để dùng nhanh hơn</span>
+    </div>
+    <div class="install-actions">
+      <button class="btn-install" onclick="installPWA()">Cài đặt</button>
+      <button class="btn-dismiss" onclick="dismissInstall()">✕</button>
+    </div>
+  </div>
+
+  <script>
+    // ══ SERVICE WORKER ══════════════════════════════════════════
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('[SW] Registered:', reg.scope))
+          .catch(err => console.warn('[SW] Error:', err));
+      });
+    }
+
+    // ══ LOADING SCREEN ══════════════════════════════════════════
+    const loader = document.getElementById('loader');
+    const frame  = document.getElementById('app-frame');
+
+    // Fallback timeout: ẩn loader sau 8 giây dù iframe chưa load xong
+    const loaderTimeout = setTimeout(() => hideLoader(), 8000);
+
+    function hideLoader() {
+      clearTimeout(loaderTimeout);
+      loader.classList.add('fade-out');
+      // Xóa khỏi DOM sau khi animation kết thúc
+      setTimeout(() => { loader.remove(); }, 700);
+    }
+
+    // Ẩn loader khi iframe tải xong
+    frame.addEventListener('load', () => {
+      // Thêm 300ms buffer để nội dung render xong
+      setTimeout(hideLoader, 300);
+    });
+
+    // Ẩn loader nếu có lỗi tải (vẫn hiện app)
+    frame.addEventListener('error', () => hideLoader());
+
+    // ══ PWA INSTALL PROMPT ══════════════════════════════════════
+    let deferredPrompt = null;
+    const installBanner = document.getElementById('install-prompt');
+
+    // Bắt sự kiện beforeinstallprompt (Chrome/Android)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Chỉ hiện prompt nếu chưa từng dismiss
+      if (!localStorage.getItem('pwa_dismissed')) {
+        setTimeout(() => installBanner.classList.add('show'), 3000);
+      }
+    });
+
+    function installPWA() {
+      installBanner.classList.remove('show');
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(result => {
+          if (result.outcome === 'accepted') {
+            console.log('[PWA] User accepted install');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function dismissInstall() {
+      installBanner.classList.remove('show');
+      localStorage.setItem('pwa_dismissed', '1');
+    }
+
+    // Ẩn prompt khi đã cài
+    window.addEventListener('appinstalled', () => {
+      installBanner.classList.remove('show');
+      deferredPrompt = null;
+    });
+
+    // ══ CHẶN ZOOM TRÊN IOS ══════════════════════════════════════
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+    document.addEventListener('touchmove', e => {
+      if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+
+    // ══ FULLSCREEN STATUS BAR IOS ══════════════════════════════
+    // Khi chạy như PWA trên iOS, đảm bảo chiếm toàn bộ màn hình
+    if (window.navigator.standalone) {
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+    }
+  </script>
+</body>
+</html>
