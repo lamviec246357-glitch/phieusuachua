@@ -212,12 +212,13 @@
       letter-spacing: 0.3px;
     }
 
-    /* ══ INSTALL PROMPT (Android) ══════════════════════════════ */
+    /* ══ INSTALL PROMPT - DỜI LÊN TRÊN ══════════════════════ */
     #install-prompt {
       position: fixed;
-      bottom: calc(20px + env(safe-area-inset-bottom));
+      /* ★ FIX H1: Dời lên trên thay vì bottom → X button luôn bấm được */
+      top: calc(16px + env(safe-area-inset-top, 0px));
       left: 50%;
-      transform: translateX(-50%) translateY(100px);
+      transform: translateX(-50%) translateY(-120px);
       z-index: 9998;
       background: #fff;
       border-radius: 16px;
