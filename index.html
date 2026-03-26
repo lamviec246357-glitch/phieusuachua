@@ -2,619 +2,660 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Phong Vũ SC">
-  <meta name="application-name" content="Phong Vũ SC">
-  <meta name="theme-color" content="#007bff">
-  <meta name="description" content="Quản Lý Sửa Chữa & Bảo Hành - Cửa hàng Phong Vũ">
-  <title>Phong Vũ – Sửa Chữa & Bảo Hành</title>
-
+  <meta name="theme-color" content="#1a73e8">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="shortcut icon" href="icon-192.png">
+  <title>Phong Vũ – Sửa Chữa & Bảo Hành</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a73e8;--blue-d:#0d47a1;--blue-l:#e8f0fe;
+  --red:#ea4335;--green:#34a853;
+  --text:#202124;--sub:#5f6368;--border:#e0e4ea;
+  --radius:14px;--font:-apple-system,'Segoe UI',sans-serif;
+}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--blue-d);
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior:none;
+}
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ══ LOADING ══ */
+#loader{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:linear-gradient(145deg,#0d47a1,#1565c0,#1a73e8);
+  transition:opacity .5s,visibility .5s;
+}
+#loader.hide{opacity:0;visibility:hidden;pointer-events:none}
+.ld-icon{
+  width:84px;height:84px;border-radius:22px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+  animation:popIn .7s ease;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+.ld-name{color:#fff;font-family:var(--font);font-size:22px;font-weight:700}
+.ld-sub{color:rgba(255,255,255,.7);font-family:var(--font);font-size:13px;margin-top:-12px}
+.spinner{width:44px;height:44px;position:relative}
+.spinner::before{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid rgba(255,255,255,.2)}
+.spinner::after{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:#fff;animation:spin .85s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    :root { --primary: #007bff; --primary-dark: #0056b3; }
+/* ══ TRANG ĐĂNG NHẬP (chạy trên GitHub domain - HTTPS) ══ */
+#loginWrap{
+  position:fixed;inset:0;z-index:500;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#0d47a1,#1565c0,#1a73e8);
+  padding:20px;
+  padding-top:calc(20px + env(safe-area-inset-top));
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
+}
+#loginWrap.show{display:flex}
 
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      background: #003d99;
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: touch;
-      -webkit-text-size-adjust: 100%;
-    }
+.login-card{
+  background:#fff;border-radius:20px;
+  width:100%;max-width:400px;
+  padding:32px 24px 24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo-icon{font-size:48px;margin-bottom:6px}
+.login-logo-title{font-size:24px;font-weight:700;color:var(--blue);font-family:var(--font)}
+.login-logo-sub{font-size:13px;color:var(--sub);margin-top:2px;font-family:var(--font)}
 
-    /* ══ APP IFRAME ══ */
-    #app-wrapper {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      overflow: hidden;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      background: #fff;
-    }
-    #app-frame {
-      display: block;
-      width: 100%;
-      border: none;
-      outline: none;
-      /* Che banner Google "Ứng dụng này do một người dùng Google tạo" */
-      margin-top: -45px;
-      height: calc(100% + 45px);
-      min-height: calc(100vh + 45px);
-    }
+.field-lbl{
+  display:block;font-size:13px;font-weight:600;
+  color:var(--sub);margin-bottom:5px;font-family:var(--font)
+}
+.field-wrap{
+  position:relative;display:flex;align-items:center;
+  border:2px solid var(--border);border-radius:10px;
+  background:#fafbfc;margin-bottom:14px;transition:border-color .2s;
+}
+.field-wrap:focus-within{border-color:var(--blue);background:#fff}
+.field-icon{padding:0 10px;font-size:17px;pointer-events:none;flex-shrink:0}
+.field-input{
+  flex:1;border:none;background:transparent;outline:none;
+  padding:12px 4px;font-size:15px;font-family:var(--font);color:var(--text);
+}
+.field-btn{
+  background:none;border:none;padding:10px;cursor:pointer;font-size:18px;flex-shrink:0
+}
+.remember-row{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:16px;font-size:14px;color:var(--sub);
+  font-family:var(--font);cursor:pointer;
+}
+.remember-row input{width:17px;height:17px;accent-color:var(--blue)}
+.err-box{
+  background:#fce8e6;color:#c5221f;border:1px solid #f5c6c2;
+  border-radius:8px;padding:10px 12px;font-size:13px;
+  margin-bottom:12px;display:none;font-family:var(--font);
+}
+.btn-login{
+  width:100%;padding:14px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d));
+  color:#fff;font-size:16px;font-weight:700;cursor:pointer;
+  font-family:var(--font);box-shadow:0 4px 15px rgba(26,115,232,.4);
+  transition:opacity .15s;
+}
+.btn-login:disabled{opacity:.7;cursor:not-allowed}
+.divider{
+  text-align:center;color:var(--sub);font-size:13px;
+  margin:16px 0;position:relative;font-family:var(--font);
+}
+.divider::before{content:'';position:absolute;top:50%;left:0;right:0;border-top:1px solid var(--border)}
+.divider span{background:#fff;padding:0 12px;position:relative}
 
-    /* ══ LOADING SCREEN ══ */
-    #loader {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 24px;
-      background: linear-gradient(145deg, #003d99 0%, #0056b3 40%, #007bff 100%);
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-    #loader.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+/* Nút Face ID - nổi bật, giống app ngân hàng */
+.btn-faceid{
+  width:100%;padding:13px;border-radius:10px;
+  border:2px solid var(--blue);background:#fff;
+  color:var(--blue);font-size:15px;font-weight:700;
+  cursor:pointer;font-family:var(--font);
+  display:none;align-items:center;justify-content:center;gap:10px;
+  transition:background .15s;
+}
+.btn-faceid.visible{display:flex}
+.btn-faceid:hover{background:var(--blue-l)}
+.face-hint{
+  text-align:center;font-size:12px;color:var(--sub);
+  margin-top:10px;font-family:var(--font);line-height:1.4;
+}
 
-    .loader-logo {
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-      animation: logoIn 0.8s ease forwards;
-    }
-    @keyframes logoIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to   { opacity: 1; transform: none; }
-    }
-    .loader-icon {
-      width: 80px; height: 80px;
-      background: rgba(255,255,255,.15);
-      border-radius: 22px;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid rgba(255,255,255,.3);
-      box-shadow: 0 8px 32px rgba(0,0,0,.2);
-    }
-    .loader-icon svg { width: 48px; height: 48px; }
-    .loader-name {
-      color: #fff; font-family: -apple-system, 'Segoe UI', sans-serif;
-      font-size: 22px; font-weight: 700; letter-spacing: .5px;
-    }
-    .loader-sub {
-      color: rgba(255,255,255,.7); font-family: -apple-system, 'Segoe UI', sans-serif;
-      font-size: 13px; margin-top: -8px;
-    }
+/* ══ APP IFRAME ══ */
+#appWrap{
+  position:fixed;inset:0;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  background:#fff;display:none;
+}
+#appWrap.show{display:block}
+#appFrame{
+  display:block;width:100%;border:none;outline:none;
+  margin-top:-45px;
+  height:calc(100% + 45px);
+}
 
-    .spinner {
-      position: relative; width: 48px; height: 48px;
-    }
-    .spinner::before {
-      content: ''; position: absolute; inset: 0;
-      border-radius: 50%; border: 3px solid rgba(255,255,255,.2);
-    }
-    .spinner::after {
-      content: ''; position: absolute; inset: 0;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      border-top-color: #fff;
-      border-right-color: rgba(255,255,255,.5);
-      animation: spin .9s cubic-bezier(.5,0,.5,1) infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ══ FACE ID OVERLAY (chạy ở tầng wrapper - domain GitHub) ══ */
-    #faceOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 8000;
-      background: rgba(0,0,0,.6);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    #faceOverlay.show { display: flex; }
-
-    .face-card {
-      background: #fff;
-      border-radius: 20px;
-      width: 100%; max-width: 340px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.3);
-      overflow: hidden;
-      animation: cardIn .3s ease;
-    }
-    @keyframes cardIn {
-      from { transform: scale(.95) translateY(20px); opacity: 0; }
-      to   { transform: none; opacity: 1; }
-    }
-    .face-card-header {
-      background: linear-gradient(135deg, #003d99, #007bff);
-      padding: 24px 20px 20px;
-      text-align: center;
-      color: #fff;
-    }
-    .face-icon-big { font-size: 56px; margin-bottom: 8px; line-height: 1; }
-    .face-card-header h2 { font-size: 18px; font-weight: 700; font-family: -apple-system,'Segoe UI',sans-serif; }
-    .face-card-header p { font-size: 13px; opacity: .8; margin-top: 4px; font-family: -apple-system,'Segoe UI',sans-serif; }
-
-    .face-card-body { padding: 20px; }
-    .face-username {
-      text-align: center;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-      font-size: 15px; font-weight: 600;
-      color: #333; margin-bottom: 16px;
-    }
-    /* Input PIN ẩn - iOS sẽ autofill bằng Face ID */
-    .face-pin-wrap { position: relative; margin-bottom: 8px; }
-    .face-pin-input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e0e4ea;
-      border-radius: 10px;
-      font-size: 22px;
-      letter-spacing: 8px;
-      text-align: center;
-      font-family: -apple-system, sans-serif;
-      outline: none;
-      transition: border-color .2s;
-      background: #f8f9ff;
-    }
-    .face-pin-input:focus { border-color: var(--primary); background: #fff; }
-    .face-pin-hint {
-      text-align: center;
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 16px;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-      line-height: 1.4;
-    }
-    .face-pin-error {
-      color: #ea4335; font-size: 13px; text-align: center;
-      min-height: 18px; margin-bottom: 8px;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .face-card-footer {
-      display: flex; gap: 10px;
-      padding: 0 20px 20px;
-    }
-    .btn-face-cancel {
-      flex: 1; padding: 13px;
-      border: 1.5px solid #e0e4ea;
-      border-radius: 10px;
-      background: #fff; color: #555;
-      font-size: 15px; font-weight: 600;
-      cursor: pointer;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .btn-face-confirm {
-      flex: 2; padding: 13px;
-      background: var(--primary); color: #fff;
-      border: none; border-radius: 10px;
-      font-size: 15px; font-weight: 700;
-      cursor: pointer;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-      transition: background .15s;
-    }
-    .btn-face-confirm:hover { background: var(--primary-dark); }
-    .btn-face-confirm:disabled { opacity: .6; cursor: not-allowed; }
-
-    /* Setup PIN overlay */
-    #setupOverlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 8000;
-      background: rgba(0,0,0,.6);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      align-items: center; justify-content: center; padding: 20px;
-    }
-    #setupOverlay.show { display: flex; }
-    .setup-card {
-      background: #fff; border-radius: 20px;
-      width: 100%; max-width: 360px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.3);
-      animation: cardIn .3s ease;
-    }
-    .setup-header {
-      padding: 20px 20px 16px;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .setup-header h2 {
-      font-size: 17px; font-weight: 700; color: #1a1a2e;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .setup-body { padding: 16px 20px; }
-    .setup-body .info-box {
-      background: #e8f0fe; border-radius: 10px;
-      padding: 12px 14px; margin-bottom: 16px;
-      font-size: 13px; line-height: 1.5; color: #1a3a6e;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .setup-body label {
-      display: block; font-size: 13px; font-weight: 600;
-      color: #555; margin-bottom: 6px;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .setup-body input {
-      width: 100%; padding: 12px 14px;
-      border: 2px solid #e0e4ea; border-radius: 10px;
-      font-size: 18px; letter-spacing: 6px; text-align: center;
-      margin-bottom: 12px; outline: none;
-      font-family: -apple-system, sans-serif;
-      background: #f8f9ff;
-      transition: border-color .2s;
-    }
-    .setup-body input:focus { border-color: var(--primary); background: #fff; }
-    .setup-error {
-      color: #ea4335; font-size: 13px; min-height: 18px;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .setup-footer {
-      display: flex; gap: 10px; padding: 12px 20px 20px;
-    }
-    .btn-setup-cancel {
-      flex: 1; padding: 12px;
-      border: 1.5px solid #e0e4ea; border-radius: 10px;
-      background: #fff; color: #555;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .btn-setup-save {
-      flex: 2; padding: 12px;
-      background: var(--primary); color: #fff;
-      border: none; border-radius: 10px;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-      font-family: -apple-system,'Segoe UI',sans-serif;
-    }
-    .btn-setup-save:disabled { opacity: .6; cursor: not-allowed; }
-  </style>
+/* ══ SETUP PIN MODAL (trên GitHub domain) ══ */
+#setupModal{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+#setupModal.show{display:flex}
+.setup-card{
+  background:#fff;border-radius:20px;
+  width:100%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+  animation:popUp .25s ease;overflow:hidden;
+}
+@keyframes popUp{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+.setup-head{
+  background:linear-gradient(135deg,var(--blue-d),var(--blue));
+  padding:20px;color:#fff;
+}
+.setup-head h2{font-size:17px;font-weight:700;font-family:var(--font)}
+.setup-head p{font-size:13px;opacity:.85;margin-top:4px;font-family:var(--font);line-height:1.4}
+.setup-body{padding:20px}
+.setup-info{
+  background:#e8f0fe;border-radius:10px;padding:12px 14px;
+  font-size:13px;color:#1a3a6e;line-height:1.5;
+  margin-bottom:16px;font-family:var(--font);
+}
+.setup-lbl{display:block;font-size:13px;font-weight:600;color:var(--sub);margin-bottom:6px;font-family:var(--font)}
+.setup-input{
+  width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;
+  font-size:20px;letter-spacing:6px;text-align:center;
+  background:#f8f9ff;outline:none;margin-bottom:14px;
+  font-family:var(--font);transition:border-color .2s;
+}
+.setup-input:focus{border-color:var(--blue);background:#fff}
+.setup-err{color:var(--red);font-size:13px;min-height:18px;font-family:var(--font)}
+.setup-foot{display:flex;gap:10px;padding:0 20px 20px}
+.btn-cancel{
+  flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;
+  background:#fff;color:var(--sub);font-size:14px;font-weight:600;
+  cursor:pointer;font-family:var(--font);
+}
+.btn-save{
+  flex:2;padding:12px;border:none;border-radius:10px;
+  background:var(--blue);color:#fff;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:var(--font);transition:opacity .15s;
+}
+.btn-save:disabled{opacity:.6;cursor:not-allowed}
+</style>
 </head>
 <body>
 
-  <!-- LOADING -->
-  <div id="loader">
-    <div class="loader-logo">
-      <div class="loader-icon">
-        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="14" y="6" width="20" height="32" rx="4" fill="white" opacity="0.95"/>
-          <rect x="16" y="9" width="16" height="20" rx="2" fill="#007bff" opacity="0.3"/>
-          <circle cx="24" cy="33" r="2" fill="white" opacity="0.6"/>
-          <path d="M8 24 L18 14" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="7" cy="25" r="3.5" fill="none" stroke="#FFD700" stroke-width="2.2"/>
-          <path d="M40 8 L30 18" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M38 6 L42 10" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
-          <text x="18" y="22" font-family="Arial Black" font-size="8" font-weight="900" fill="white" opacity="0.9">PV</text>
-        </svg>
-      </div>
-      <div class="loader-name">Phong Vũ</div>
-      <div class="loader-sub">Sửa Chữa & Bảo Hành</div>
+<!-- LOADING -->
+<div id="loader">
+  <div class="ld-icon">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <rect x="14" y="6" width="20" height="32" rx="4" fill="white" opacity=".95"/>
+      <rect x="16" y="9" width="16" height="20" rx="2" fill="#1a73e8" opacity=".3"/>
+      <circle cx="24" cy="33" r="2" fill="white" opacity=".6"/>
+      <path d="M8 24L18 14" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="7" cy="25" r="3.5" fill="none" stroke="#FFD700" stroke-width="2.2"/>
+      <path d="M40 8L30 18" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M38 6L42 10" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+      <text x="18" y="22" font-family="Arial Black" font-size="8" font-weight="900" fill="white" opacity=".9">PV</text>
+    </svg>
+  </div>
+  <div class="ld-name">Phong Vũ</div>
+  <div class="ld-sub">Sửa Chữa & Bảo Hành</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- ══ TRANG ĐĂNG NHẬP (trên GitHub domain - Face ID hoạt động) ══ -->
+<div id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🔧</div>
+      <div class="login-logo-title">Phong Vũ</div>
+      <div class="login-logo-sub">Quản Lý Sửa Chữa & Bảo Hành</div>
     </div>
-    <div class="spinner"></div>
-  </div>
 
-  <!-- APP IFRAME -->
-  <div id="app-wrapper">
-    <iframe
-      id="app-frame"
-      src="https://script.google.com/macros/s/AKfycbwkOtnzq_NpUVEhtp8jsCPi-1_R49kgelESqaiVKu9sZO0NLQUfgdw47N4uYyD1axWR/exec"
-      title="Phong Vũ Quản Lý Sửa Chữa"
-      scrolling="yes"
-      allow="camera; microphone; geolocation; clipboard-write"
-      allowfullscreen
-      loading="eager"
-    ></iframe>
-  </div>
+    <label class="field-lbl">Tên đăng nhập</label>
+    <div class="field-wrap">
+      <span class="field-icon">👤</span>
+      <input class="field-input" id="inUser" type="text"
+             placeholder="Nhập tên đăng nhập"
+             autocomplete="username" autocapitalize="none">
+    </div>
 
-  <!-- ══ FACE ID / PIN OVERLAY (chạy ở tầng GitHub - HTTPS) ══ -->
-  <div id="faceOverlay">
-    <div class="face-card">
-      <div class="face-card-header">
-        <div class="face-icon-big" id="faceIconBig">😊</div>
-        <h2>Đăng nhập nhanh</h2>
-        <p id="faceUserLabel">Tài khoản: </p>
+    <label class="field-lbl">Mật khẩu</label>
+    <div class="field-wrap">
+      <span class="field-icon">🔒</span>
+      <input class="field-input" id="inPass" type="password"
+             placeholder="Nhập mật khẩu"
+             autocomplete="current-password">
+      <button class="field-btn" id="toggleBtn" onclick="togglePass()" type="button">👁</button>
+    </div>
+
+    <label class="remember-row">
+      <input type="checkbox" id="rememberMe"> Duy trì đăng nhập
+    </label>
+
+    <div class="err-box" id="errBox"></div>
+
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">
+      <span id="btnTxt">Đăng Nhập</span>
+      <span id="btnWait" style="display:none">⏳ Đang xử lý...</span>
+    </button>
+
+    <div class="divider"><span>hoặc</span></div>
+
+    <!-- Nút Face ID — chỉ hiện khi đã đăng ký credential -->
+    <button class="btn-faceid" id="btnFaceID" onclick="doFaceLogin()">
+      <span style="font-size:22px">🔒</span>
+      <span id="faceLabel">Đăng nhập bằng Face ID</span>
+    </button>
+
+    <p class="face-hint" id="faceHint">
+      Đăng nhập bằng mật khẩu lần đầu,<br>
+      iOS sẽ hỏi lưu mật khẩu → đồng ý → lần sau dùng Face ID
+    </p>
+  </div>
+</div>
+
+<!-- APP IFRAME (chỉ hiện sau khi đăng nhập thành công) -->
+<div id="appWrap">
+  <iframe id="appFrame"
+    src="about:blank"
+    scrolling="yes"
+    allow="camera;microphone;geolocation;clipboard-write"
+    allowfullscreen>
+  </iframe>
+</div>
+
+<!-- ══ SETUP PIN MODAL (trên GitHub domain → Face ID lưu đúng domain) ══ -->
+<div id="setupModal">
+  <div class="setup-card">
+    <div class="setup-head">
+      <h2>🔐 Thiết lập đăng nhập nhanh</h2>
+      <p>Tạo mã PIN — iOS sẽ dùng <strong>Face ID</strong> để bảo vệ và tự điền</p>
+    </div>
+    <div class="setup-body">
+      <div class="setup-info">
+        💡 Sau khi lưu PIN, bấm vào ô nhập PIN → iOS hiện biểu tượng Face ID để xác thực tự động.
       </div>
-      <div class="face-card-body">
-        <div class="face-pin-hint" id="facePinHint">
-          Nhập mã PIN<br>
-          <small style="color:#007bff">iOS sẽ dùng Face ID / Touch ID để xác nhận</small>
-        </div>
-        <div class="face-pin-wrap">
-          <input type="password"
-                 id="facePinInput"
-                 inputmode="numeric"
-                 maxlength="20"
-                 placeholder="● ● ● ●"
-                 autocomplete="current-password"
-                 class="face-pin-input"
-                 onkeydown="if(event.key==='Enter')confirmFaceLogin()">
-        </div>
-        <div class="face-pin-error" id="facePinError"></div>
-      </div>
-      <div class="face-card-footer">
-        <button class="btn-face-cancel" onclick="closeFaceOverlay()">Hủy</button>
-        <button class="btn-face-confirm" id="btnFaceConfirm" onclick="confirmFaceLogin()">
-          🔒 Xác nhận
-        </button>
-      </div>
+      <label class="setup-lbl">Mã PIN mới (tối thiểu 4 ký tự)</label>
+      <input class="setup-input" id="pin1" type="password"
+             inputmode="numeric" maxlength="20" placeholder="● ● ● ●"
+             autocomplete="new-password">
+      <label class="setup-lbl">Xác nhận PIN</label>
+      <input class="setup-input" id="pin2" type="password"
+             inputmode="numeric" maxlength="20" placeholder="● ● ● ●"
+             autocomplete="new-password"
+             onkeydown="if(event.key==='Enter')savePIN()">
+      <div class="setup-err" id="pinErr"></div>
+    </div>
+    <div class="setup-foot">
+      <button class="btn-cancel" onclick="closeSetup()">Hủy</button>
+      <button class="btn-save" id="btnSave" onclick="savePIN()">✅ Lưu PIN</button>
     </div>
   </div>
+</div>
 
-  <!-- ══ SETUP PIN OVERLAY ══ -->
-  <div id="setupOverlay">
-    <div class="setup-card">
-      <div class="setup-header">
-        <h2>🔐 Thiết lập đăng nhập nhanh</h2>
-      </div>
-      <div class="setup-body">
-        <div class="info-box">
-          💡 Tạo mã PIN để đăng nhập nhanh.<br>
-          Trên iPhone, iOS sẽ tự dùng <strong>Face ID</strong> để bảo vệ và tự điền PIN — bạn không cần nhập tay.
-        </div>
-        <label>Mã PIN mới (tối thiểu 4 ký tự)</label>
-        <input type="password" id="setupPin1" inputmode="numeric"
-               maxlength="20" placeholder="Nhập PIN"
-               autocomplete="new-password">
-        <label>Xác nhận PIN</label>
-        <input type="password" id="setupPin2" inputmode="numeric"
-               maxlength="20" placeholder="Nhập lại PIN"
-               autocomplete="new-password"
-               onkeydown="if(event.key==='Enter')saveSetupPIN()">
-        <div class="setup-error" id="setupPinError"></div>
-      </div>
-      <div class="setup-footer">
-        <button class="btn-setup-cancel" onclick="closeSetupOverlay()">Hủy</button>
-        <button class="btn-setup-save" id="btnSetupSave" onclick="saveSetupPIN()">✅ Lưu PIN</button>
-      </div>
-    </div>
-  </div>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  index.html - Chạy trên GitHub domain (HTTPS)
+//  ★ ĐÂY LÀ NƠI DUY NHẤT XỬ LÝ FACE ID / PasswordCredential
+//  Trang đăng nhập hoàn toàn trên GitHub — không dùng iframe GAS
+//  Sau khi đăng nhập xong mới load iframe GAS (chỉ để hiển thị app)
+// ══════════════════════════════════════════════════════════════
 
-  <script>
-  // ══════════════════════════════════════════════════════
-  //  PWA WRAPPER - index.html (domain GitHub/Netlify HTTPS)
-  //  Face ID hoạt động tại đây vì domain này hỗ trợ
-  //  PasswordCredential API (HTTPS + không phải iframe)
-  // ══════════════════════════════════════════════════════
+// URL Google Apps Script
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkOtnzq_NpUVEhtp8jsCPi-1_R49kgelESqaiVKu9sZO0NLQUfgdw47N4uYyD1axWR/exec';
 
-  // ── SERVICE WORKER ────────────────────────────────────
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(r => console.log('[SW] OK:', r.scope))
-        .catch(e => console.warn('[SW]', e));
-    });
-  }
+// Gọi GAS bằng fetch (không cần iframe để đăng nhập)
+async function callGAS(fn, params = {}) {
+  const url = new URL(GAS_URL);
+  url.searchParams.set('fn', fn);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString(), { method: 'GET', mode: 'no-cors' });
+  // no-cors → không đọc được response body → dùng cách khác
+  return null;
+}
 
-  // ── LOADING ───────────────────────────────────────────
-  const loader = document.getElementById('loader');
-  const frame  = document.getElementById('app-frame');
-  const loaderTO = setTimeout(() => hideLoader(), 8000);
+// Gọi GAS qua google.script.run không được từ ngoài iframe
+// → Dùng JSONP trick hoặc đơn giản hơn: luôn để GAS xử lý đăng nhập trong iframe
+// NHƯNG lưu credential trên GitHub domain trước
 
-  function hideLoader() {
-    clearTimeout(loaderTO);
-    loader.classList.add('fade-out');
-    setTimeout(() => loader.remove(), 700);
-  }
-  frame.addEventListener('load',  () => setTimeout(hideLoader, 300));
-  frame.addEventListener('error', () => hideLoader());
+// ── SERVICE WORKER ─────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(r => console.log('[SW]', r.scope))
+    .catch(e => console.warn('[SW]', e));
+}
 
-  // ── CHẶN ZOOM IOS ─────────────────────────────────────
-  document.addEventListener('gesturestart',  e => e.preventDefault());
-  document.addEventListener('gesturechange', e => e.preventDefault());
-  document.addEventListener('touchmove', e => {
-    if (e.touches.length > 1) e.preventDefault();
-  }, { passive: false });
+// ── KHỞI TẠO ───────────────────────────────────────────────
+const loader    = document.getElementById('loader');
+const loginWrap = document.getElementById('loginWrap');
+const appWrap   = document.getElementById('appWrap');
+const appFrame  = document.getElementById('appFrame');
 
-  // ── LẮNG NGHE MESSAGES TỪ IFRAME (GAS) ───────────────
-  // GAS sẽ gửi postMessage để yêu cầu Face ID / setup PIN
-  window.addEventListener('message', async (e) => {
-    // Chỉ nhận message từ Google Script
-    if (!e.origin.includes('script.google.com') &&
-        !e.origin.includes('googleusercontent.com')) return;
-
-    const { type, data } = e.data || {};
-    console.log('[Wrapper] Message from GAS:', type, data);
-
-    switch(type) {
-      case 'FACE_LOGIN_REQUEST':
-        // GAS yêu cầu đăng nhập bằng Face ID
-        openFaceOverlay(data.username);
-        break;
-
-      case 'SETUP_PIN_REQUEST':
-        // GAS yêu cầu thiết lập PIN
-        openSetupOverlay();
-        break;
-
-      case 'LOGIN_SUCCESS':
-        // GAS đăng nhập thành công bằng mật khẩu → lưu credential
-        if (data && data.username && data.password) {
-          saveCredential(data.username, data.password);
-        }
-        break;
-
-      case 'CHECK_FACEID_STATUS':
-        // GAS hỏi xem có credential không
-        const hasCred = !!localStorage.getItem('pv_has_cred');
-        const username = localStorage.getItem('pv_username') || '';
-        sendToGAS({ type: 'FACEID_STATUS', hasCred, username });
-        break;
-    }
-  });
-
-  // Gửi message xuống iframe GAS
-  function sendToGAS(msg) {
-    try {
-      frame.contentWindow.postMessage(msg, 'https://script.google.com');
-    } catch(e) {
-      console.warn('[Wrapper] postMessage failed:', e);
-    }
-  }
-
-  // ══ FACE ID - MỞ OVERLAY ════════════════════════════
-  function openFaceOverlay(username) {
-    document.getElementById('faceUserLabel').textContent = 'Tài khoản: ' + (username || '');
-    document.getElementById('facePinError').textContent = '';
-    document.getElementById('facePinInput').value = '';
-    document.getElementById('faceOverlay').classList.add('show');
-
-    // Thử PasswordCredential trước (iOS sẽ bật Face ID tự động)
-    tryPasswordCredential(username);
-  }
-
-  async function tryPasswordCredential(username) {
-    if (!window.PasswordCredential || !navigator.credentials) return;
-    try {
-      // mediation: 'required' → bắt buộc iOS hiện Face ID dialog
-      const cred = await navigator.credentials.get({
-        password: true,
-        mediation: 'required'
-      });
-      if (cred && cred.password) {
-        // iOS đã xác thực Face ID → tự điền và submit
-        document.getElementById('facePinInput').value = cred.password;
-        document.getElementById('facePinHint').innerHTML =
-          '✅ Face ID xác thực thành công!';
-        setTimeout(() => {
-          sendLoginToGAS(cred.id || username, cred.password);
-        }, 500);
-      }
-    } catch(e) {
-      if (e.name === 'NotAllowedError') {
-        // Người dùng hủy Face ID → để họ tự nhập PIN
-        console.log('[FaceID] User cancelled');
-      }
-      // Các lỗi khác: browser không hỗ trợ → giữ nguyên form nhập PIN
-    }
-  }
-
-  function closeFaceOverlay() {
-    document.getElementById('faceOverlay').classList.remove('show');
-    document.getElementById('facePinInput').value = '';
-    document.getElementById('facePinError').textContent = '';
-  }
-
-  function confirmFaceLogin() {
-    const pin = document.getElementById('facePinInput').value.trim();
-    const username = localStorage.getItem('pv_username') || '';
-    if (!pin) {
-      document.getElementById('facePinError').textContent = 'Vui lòng nhập PIN';
+window.addEventListener('DOMContentLoaded', () => {
+  // Kiểm tra session đã lưu
+  try {
+    const sess = JSON.parse(localStorage.getItem('pv_sess') || 'null');
+    if (sess && sess.expiry > Date.now()) {
+      // Còn session → vào thẳng app
+      loadApp();
       return;
     }
-    sendLoginToGAS(username, pin);
+  } catch(e) {}
+
+  // Kiểm tra có credential (Face ID) không
+  checkCredentialAvailable();
+
+  // Hiện trang đăng nhập
+  setTimeout(() => {
+    loader.classList.add('hide');
+    loginWrap.classList.add('show');
+  }, 800);
+});
+
+// Kiểm tra PasswordCredential
+async function checkCredentialAvailable() {
+  const savedUser = localStorage.getItem('pv_user');
+  if (!savedUser) return;
+
+  // Nếu có credential đã lưu → hiện nút Face ID
+  if (localStorage.getItem('pv_cred_ok') === '1') {
+    showFaceButton(savedUser);
+    return;
   }
 
-  function sendLoginToGAS(username, password) {
-    document.getElementById('btnFaceConfirm').disabled = true;
-    document.getElementById('btnFaceConfirm').textContent = '⏳ Đang xác thực...';
-
-    // Gửi thông tin đăng nhập xuống iframe GAS
-    sendToGAS({
-      type: 'DO_LOGIN',
-      username: username,
-      password: password
-    });
-
-    // Chờ phản hồi từ GAS
-    const timeout = setTimeout(() => {
-      document.getElementById('btnFaceConfirm').disabled = false;
-      document.getElementById('btnFaceConfirm').textContent = '🔒 Xác nhận';
-      document.getElementById('facePinError').textContent = 'Hết thời gian. Thử lại.';
-    }, 15000);
-
-    // Lắng nghe kết quả
-    const handler = (e) => {
-      if (!e.origin.includes('script.google.com') && !e.origin.includes('googleusercontent.com')) return;
-      const { type, success, message } = e.data || {};
-      if (type !== 'LOGIN_RESULT') return;
-      clearTimeout(timeout);
-      window.removeEventListener('message', handler);
-      document.getElementById('btnFaceConfirm').disabled = false;
-      document.getElementById('btnFaceConfirm').textContent = '🔒 Xác nhận';
-      if (success) {
-        closeFaceOverlay();
-      } else {
-        document.getElementById('facePinError').textContent = '❌ ' + (message || 'PIN không đúng');
+  // Thử silent mediation (không hiện dialog)
+  if (window.PasswordCredential && navigator.credentials) {
+    try {
+      const cred = await navigator.credentials.get({
+        password: true,
+        mediation: 'silent'
+      });
+      if (cred) {
+        localStorage.setItem('pv_cred_ok', '1');
+        showFaceButton(cred.id);
       }
-    };
-    window.addEventListener('message', handler);
+    } catch(e) {}
   }
+}
 
-  // ══ LƯU CREDENTIAL CHO FACE ID ═════════════════════
-  async function saveCredential(username, password) {
-    localStorage.setItem('pv_username', username);
-    localStorage.setItem('pv_has_cred', '1');
+function showFaceButton(username) {
+  const btn = document.getElementById('btnFaceID');
+  const lbl = document.getElementById('faceLabel');
+  const hint = document.getElementById('faceHint');
+  lbl.textContent = 'Đăng nhập nhanh (' + username + ')';
+  btn.classList.add('visible');
+  if (hint) hint.style.display = 'none';
+}
 
-    if (!window.PasswordCredential || !navigator.credentials) return;
+// ── ĐĂNG NHẬP BẰNG MẬT KHẨU ────────────────────────────────
+function doLogin() {
+  const user = document.getElementById('inUser').value.trim();
+  const pass = document.getElementById('inPass').value;
+  if (!user || !pass) { showErr('Vui lòng nhập đầy đủ thông tin'); return; }
+  setLoading(true);
+
+  // Gọi GAS qua iframe tạm để đăng nhập
+  loginViaGAS(user, pass);
+}
+
+function loginViaGAS(user, pass) {
+  // Tạo iframe ẩn để gọi google.script.run
+  const tmpFrame = document.createElement('iframe');
+  tmpFrame.style.display = 'none';
+  tmpFrame.src = GAS_URL;
+  document.body.appendChild(tmpFrame);
+
+  const timeout = setTimeout(() => {
+    // Timeout → dùng phương án dự phòng: load app với credentials
+    document.body.removeChild(tmpFrame);
+    // Lưu tạm để app tự đăng nhập
+    sessionStorage.setItem('pv_pending_user', user);
+    sessionStorage.setItem('pv_pending_pass', pass);
+    onLoginOK(user, pass);
+  }, 3000);
+
+  tmpFrame.addEventListener('load', () => {
+    clearTimeout(timeout);
+    try {
+      tmpFrame.contentWindow.google.script.run
+        .withSuccessHandler(res => {
+          document.body.removeChild(tmpFrame);
+          setLoading(false);
+          if (res && res.success) {
+            onLoginOK(user, pass, res);
+          } else {
+            showErr((res && res.message) || 'Sai tên đăng nhập hoặc mật khẩu');
+          }
+        })
+        .withFailureHandler(e => {
+          document.body.removeChild(tmpFrame);
+          setLoading(false);
+          showErr('Lỗi kết nối: ' + e.message);
+        })
+        .login(user, pass);
+    } catch(e) {
+      clearTimeout(timeout);
+      document.body.removeChild(tmpFrame);
+      setLoading(false);
+      // Fallback: load thẳng app, để GAS tự xác thực
+      onLoginOK(user, pass);
+    }
+  });
+}
+
+async function onLoginOK(user, pass, gasRes) {
+  setLoading(false);
+
+  // ★★★ LƯU CREDENTIAL VÀO iOS KEYCHAIN (GITHUB DOMAIN) ★★★
+  // Đây là bước quan trọng nhất - chạy đúng domain GitHub HTTPS
+  // iOS sẽ hỏi "Lưu mật khẩu cho Phong Vũ SC không?" → Đồng ý
+  // Lần sau iOS tự bật Face ID để điền mật khẩu
+  if (window.PasswordCredential && navigator.credentials && window.isSecureContext) {
     try {
       const cred = new PasswordCredential({
-        id: username,
-        password: password,
-        name: 'Phong Vũ SC - ' + username,
+        id: user,
+        password: pass,
+        name: 'Phong Vũ SC',
         iconURL: window.location.origin + '/icon-192.png',
       });
       await navigator.credentials.store(cred);
-      console.log('[FaceID] Credential stored — iOS Keychain / Face ID ready');
+      localStorage.setItem('pv_cred_ok', '1');
+      localStorage.setItem('pv_user', user);
+      console.log('[FaceID] ✅ Credential stored on', window.location.hostname);
     } catch(e) {
-      console.warn('[FaceID] Store failed:', e);
+      console.warn('[FaceID] Store failed:', e.message);
+    }
+  } else {
+    console.log('[FaceID] PasswordCredential not available:', {
+      PC: !!window.PasswordCredential,
+      creds: !!navigator.credentials,
+      secure: window.isSecureContext
+    });
+  }
+
+  // Lưu session local
+  localStorage.setItem('pv_user', user);
+  if (document.getElementById('rememberMe').checked) {
+    localStorage.setItem('pv_sess', JSON.stringify({ user, expiry: Date.now() + 24*3600*1000 }));
+  }
+
+  // Load app
+  loadApp();
+}
+
+// ── ĐĂNG NHẬP BẰNG FACE ID ─────────────────────────────────
+async function doFaceLogin() {
+  if (!navigator.credentials) {
+    showErr('Trình duyệt không hỗ trợ. Dùng mật khẩu.');
+    return;
+  }
+
+  try {
+    // ★ Gọi PasswordCredential.get() trên GitHub domain → iOS bật Face ID
+    const cred = await navigator.credentials.get({
+      password: true,
+      mediation: 'required' // Bắt buộc iOS hiện Face ID/Touch ID dialog
+    });
+
+    if (cred && cred.id && cred.password) {
+      // Face ID xác thực thành công → đăng nhập
+      document.getElementById('inUser').value = cred.id;
+      document.getElementById('inPass').value = cred.password;
+      setLoading(true);
+      loginViaGAS(cred.id, cred.password);
+    } else {
+      showErr('Không lấy được thông tin. Thử lại hoặc dùng mật khẩu.');
+    }
+  } catch(e) {
+    if (e.name === 'NotAllowedError') {
+      showErr('Đã hủy Face ID.');
+    } else if (e.name === 'SecurityError') {
+      showErr('Lỗi bảo mật. Đảm bảo dùng PWA từ màn hình chính.');
+    } else {
+      showErr('Lỗi: ' + e.message);
+    }
+  }
+}
+
+// ── LOAD APP SAU ĐĂNG NHẬP ─────────────────────────────────
+function loadApp() {
+  loginWrap.classList.remove('show');
+  loader.classList.remove('hide');
+
+  // Load iframe GAS
+  appFrame.src = GAS_URL;
+  appFrame.addEventListener('load', () => {
+    loader.classList.add('hide');
+    appWrap.classList.add('show');
+
+    // Gửi thông tin đăng nhập xuống GAS app nếu có
+    const pendingUser = sessionStorage.getItem('pv_pending_user');
+    const pendingPass = sessionStorage.getItem('pv_pending_pass');
+    if (pendingUser && pendingPass) {
+      sessionStorage.removeItem('pv_pending_user');
+      sessionStorage.removeItem('pv_pending_pass');
+      setTimeout(() => {
+        try {
+          appFrame.contentWindow.postMessage({
+            type: 'AUTO_LOGIN', username: pendingUser, password: pendingPass
+          }, 'https://script.google.com');
+        } catch(e) {}
+      }, 1500);
+    }
+  }, { once: true });
+
+  setTimeout(() => { loader.classList.add('hide'); appWrap.classList.add('show'); }, 10000);
+}
+
+// ── SETUP PIN / FACE ID ─────────────────────────────────────
+// Hàm này được gọi từ GAS app qua postMessage
+window.addEventListener('message', e => {
+  if (e.data && e.data.type === 'OPEN_SETUP_FACEID') {
+    openSetup();
+  }
+  if (e.data && e.data.type === 'LOGOUT') {
+    doLogoutWrapper();
+  }
+});
+
+function openSetup() {
+  document.getElementById('pin1').value = '';
+  document.getElementById('pin2').value = '';
+  document.getElementById('pinErr').textContent = '';
+  document.getElementById('setupModal').classList.add('show');
+  setTimeout(() => document.getElementById('pin1').focus(), 300);
+}
+function closeSetup() {
+  document.getElementById('setupModal').classList.remove('show');
+}
+
+async function savePIN() {
+  const p1 = document.getElementById('pin1').value.trim();
+  const p2 = document.getElementById('pin2').value.trim();
+  const err = document.getElementById('pinErr');
+  if (p1.length < 4) { err.textContent = 'PIN phải ít nhất 4 ký tự'; return; }
+  if (p1 !== p2)     { err.textContent = 'Hai PIN không khớp'; return; }
+
+  document.getElementById('btnSave').disabled = true;
+  const user = localStorage.getItem('pv_user') || 'admin';
+
+  // Lưu PIN vào iOS Keychain (GitHub domain → Face ID bảo vệ)
+  if (window.PasswordCredential && navigator.credentials && window.isSecureContext) {
+    try {
+      const cred = new PasswordCredential({
+        id: user, password: p1,
+        name: 'Phong Vũ SC',
+        iconURL: window.location.origin + '/icon-192.png',
+      });
+      await navigator.credentials.store(cred);
+      localStorage.setItem('pv_cred_ok', '1');
+      console.log('[FaceID] PIN stored via PasswordCredential');
+    } catch(e) {
+      console.warn('[FaceID] PIN store failed:', e);
     }
   }
 
-  // ══ SETUP PIN OVERLAY ════════════════════════════════
-  function openSetupOverlay() {
-    document.getElementById('setupPin1').value = '';
-    document.getElementById('setupPin2').value = '';
-    document.getElementById('setupPinError').textContent = '';
-    document.getElementById('setupOverlay').classList.add('show');
-    setTimeout(() => document.getElementById('setupPin1').focus(), 300);
-  }
+  // Thông báo GAS lưu server-side
+  try {
+    appFrame.contentWindow.postMessage({ type: 'SAVE_PIN_GAS', pin: p1 }, 'https://script.google.com');
+  } catch(e) {}
 
-  function closeSetupOverlay() {
-    document.getElementById('setupOverlay').classList.remove('show');
-  }
+  closeSetup();
+  showFaceButton(user);
+  document.getElementById('btnSave').disabled = false;
+  alert('✅ Đã bật Face ID!\n\nLần sau bấm nút "Đăng nhập nhanh" và iOS sẽ dùng Face ID để xác thực.');
+}
 
-  async function saveSetupPIN() {
-    const pin1 = document.getElementById('setupPin1').value.trim();
-    const pin2 = document.getElementById('setupPin2').value.trim();
-    const errEl = document.getElementById('setupPinError');
+function doLogoutWrapper() {
+  localStorage.removeItem('pv_sess');
+  appWrap.classList.remove('show');
+  appFrame.src = 'about:blank';
+  loginWrap.classList.add('show');
+  checkCredentialAvailable();
+}
 
-    if (pin1.length < 4) { errEl.textContent = 'PIN phải ít nhất 4 ký tự'; return; }
-    if (pin1 !== pin2)   { errEl.textContent = 'Hai PIN không khớp'; return; }
+// ── UTILS ──────────────────────────────────────────────────
+function showErr(msg) {
+  const el = document.getElementById('errBox');
+  el.textContent = '⚠️ ' + msg; el.style.display = 'block';
+}
+function setLoading(on) {
+  document.getElementById('btnLogin').disabled = on;
+  document.getElementById('btnTxt').style.display  = on ? 'none' : '';
+  document.getElementById('btnWait').style.display = on ? '' : 'none';
+}
+function togglePass() {
+  const i = document.getElementById('inPass');
+  const b = document.getElementById('toggleBtn');
+  i.type = i.type === 'password' ? 'text' : 'password';
+  b.textContent = i.type === 'password' ? '👁' : '🙈';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && loginWrap.classList.contains('show')) doLogin();
+});
 
-    document.getElementById('btnSetupSave').disabled = true;
-
-    // Lấy username từ GAS
-    const username = localStorage.getItem('pv_username') || 'admin';
-
-    // Lưu PIN vào Credential Manager (iOS Keychain → Face ID)
-    await saveCredential(username, pin1);
-
-    // Gửi PIN xuống GAS để lưu server-side
-    sendToGAS({ type: 'SAVE_PIN', username, pin: pin1 });
-
-    localStorage.setItem('pv_has_cred', '1');
-    closeSetupOverlay();
-
-    // Báo GAS biết đã setup xong
-    sendToGAS({ type: 'SETUP_PIN_DONE', username });
-    document.getElementById('btnSetupSave').disabled = false;
-  }
-
-  // ══ STANDALONE PWA CHECK ════════════════════════════
-  if (window.navigator.standalone) {
-    document.documentElement.style.height = '100%';
-    document.body.style.height = '100%';
-  }
-  </script>
+// Chặn zoom iOS
+document.addEventListener('gesturestart',  e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+document.addEventListener('touchmove', e => { if(e.touches.length>1) e.preventDefault(); }, {passive:false});
+</script>
 </body>
 </html>
