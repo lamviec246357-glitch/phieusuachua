@@ -17,72 +17,31 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{
   width:100%;height:100%;overflow:hidden;
-  background:#1a73e8;
+  background:#fff;
   -webkit-text-size-adjust:100%;
   overscroll-behavior:none;
 }
-/* APP WRAPPER */
+/* ★ VẤN ĐỀ 1: Xóa loading screen — iframe hiển thị ngay lập tức */
+/* APP WRAPPER: chiếm toàn màn hình */
 #appWrap{
   position:fixed;
-  /* Tính đúng: safe-area top để tránh notch */
-  top:env(safe-area-inset-top,0px);
-  left:0;right:0;
-  bottom:env(safe-area-inset-bottom,0px);
+  top:0; left:0; right:0; bottom:0;
   overflow:hidden;
-  background:#fff;
+  background:#1a73e8; /* màu nền trong lúc iframe load */
 }
 #appFrame{
-  display:block;width:100%;border:none;outline:none;
-  /* Che banner Google "Ứng dụng này do một người dùng Google tạo" */
+  display:block;
+  width:100%;
+  border:none;outline:none;
+  /* Che banner Google */
   margin-top:-45px;
   height:calc(100% + 45px);
 }
-/* LOADING */
-#loader{
-  position:fixed;inset:0;z-index:9999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-  background:linear-gradient(145deg,#0d47a1,#1565c0,#1a73e8);
-  transition:opacity .5s ease,visibility .5s ease;
-}
-#loader.hide{opacity:0;visibility:hidden;pointer-events:none}
-.ld-icon{
-  width:84px;height:84px;border-radius:22px;
-  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 32px rgba(0,0,0,.2);
-  animation:popIn .7s ease;
-}
-@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
-.ld-name{color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;font-size:22px;font-weight:700}
-.ld-sub{color:rgba(255,255,255,.75);font-family:-apple-system,'Segoe UI',sans-serif;font-size:13px;margin-top:-12px}
-.spinner{width:44px;height:44px;position:relative}
-.spinner::before{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid rgba(255,255,255,.2)}
-.spinner::after{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:#fff;animation:spin .85s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loader">
-  <div class="ld-icon">
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <rect x="14" y="6" width="20" height="32" rx="4" fill="white" opacity=".95"/>
-      <rect x="16" y="9" width="16" height="20" rx="2" fill="#1a73e8" opacity=".3"/>
-      <circle cx="24" cy="33" r="2" fill="white" opacity=".6"/>
-      <path d="M8 24L18 14" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="7" cy="25" r="3.5" fill="none" stroke="#FFD700" stroke-width="2.2"/>
-      <path d="M40 8L30 18" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M38 6L42 10" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
-      <text x="18" y="22" font-family="Arial Black" font-size="8" font-weight="900" fill="white" opacity=".9">PV</text>
-    </svg>
-  </div>
-  <div class="ld-name">Phong Vũ</div>
-  <div class="ld-sub">Sửa Chữa & Bảo Hành</div>
-  <div class="spinner"></div>
-</div>
-
-<!-- APP IFRAME - load GAS ngay từ đầu -->
+<!-- Không có loading screen — iframe hiện ngay -->
 <div id="appWrap">
   <iframe id="appFrame"
     src="https://script.google.com/macros/s/AKfycbwkOtnzq_NpUVEhtp8jsCPi-1_R49kgelESqaiVKu9sZO0NLQUfgdw47N4uYyD1axWR/exec"
@@ -94,98 +53,28 @@ html,body{
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  index.html v11 - PWA Wrapper (GitHub domain HTTPS)
-//  Vai trò DUY NHẤT: loading screen + lưu Face ID credential
-//  GAS tự xử lý toàn bộ đăng nhập như bình thường
-// ══════════════════════════════════════════════════════════
-
-// ── SERVICE WORKER ─────────────────────────
+// Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js')
-    .then(r => console.log('[SW]', r.scope))
-    .catch(e => console.warn('[SW]', e));
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 
-// ── LOADING SCREEN ─────────────────────────
-const loader   = document.getElementById('loader');
-const appFrame = document.getElementById('appFrame');
-const loaderTO = setTimeout(() => hideLoader(), 10000);
+// Chặn zoom iOS
+document.addEventListener('gesturestart',  e=>e.preventDefault());
+document.addEventListener('gesturechange', e=>e.preventDefault());
+document.addEventListener('touchmove', e=>{
+  if(e.touches.length>1) e.preventDefault();
+},{passive:false});
 
-function hideLoader() {
-  clearTimeout(loaderTO);
-  loader.classList.add('hide');
-}
-
-appFrame.addEventListener('load', () => setTimeout(hideLoader, 400));
-appFrame.addEventListener('error', () => hideLoader());
-
-// ── NHẬN THÔNG BÁO TỪ GAS (postMessage) ───
-// GAS sẽ gửi message sau khi đăng nhập thành công
-// để wrapper lưu credential vào iOS Keychain (Face ID)
-window.addEventListener('message', async (e) => {
-  // Chỉ nhận từ Google domain
-  if (!e.origin.includes('google.com') && !e.origin.includes('googleusercontent.com')) return;
-
-  const d = e.data || {};
-
-  if (d.type === 'PV_LOGIN_SUCCESS') {
-    // GAS đăng nhập thành công → lưu credential vào iOS Keychain
-    await storeCredential(d.username, d.password);
-  }
-
-  if (d.type === 'PV_LOGOUT') {
-    // GAS logout → xóa session credential (optional)
-    if (navigator.credentials && navigator.credentials.preventSilentAccess) {
-      navigator.credentials.preventSilentAccess();
-    }
+// Nhận credential từ GAS để lưu (không dùng nữa nhưng giữ để tương thích)
+window.addEventListener('message', async e=>{
+  if(!e.origin.includes('google.com')) return;
+  if(e.data && e.data.type==='PV_LOGIN_SUCCESS' && window.PasswordCredential && window.isSecureContext) {
+    try {
+      const c=new PasswordCredential({id:e.data.username,password:e.data.password,name:'Phong Vũ SC'});
+      await navigator.credentials.store(c);
+    } catch(err){}
   }
 });
-
-// ── LƯU CREDENTIAL CHO FACE ID ─────────────
-// Gọi trên GitHub domain (HTTPS) → iOS lưu vào Keychain
-// Lần sau iOS tự đề nghị Face ID khi nhập mật khẩu
-async function storeCredential(username, password) {
-  if (!username || !password) return;
-
-  // Kiểm tra hỗ trợ PasswordCredential
-  if (!window.PasswordCredential || !navigator.credentials) {
-    console.log('[FaceID] PasswordCredential not supported on this browser');
-    return;
-  }
-  if (!window.isSecureContext) {
-    console.warn('[FaceID] Not HTTPS - cannot store credential');
-    return;
-  }
-
-  try {
-    const cred = new PasswordCredential({
-      id: username,
-      password: password,
-      name: 'Phong Vũ SC',
-      iconURL: window.location.origin + '/icon-192.png',
-    });
-    await navigator.credentials.store(cred);
-    console.log('[FaceID] ✅ Credential stored for', username, 'on', window.location.hostname);
-    // iOS sẽ hiện popup "Lưu mật khẩu cho Phong Vũ SC không?"
-    // Người dùng bấm Lưu → lần sau iOS tự bật Face ID để điền mật khẩu
-  } catch(e) {
-    console.warn('[FaceID] Store failed:', e.message);
-  }
-}
-
-// ── CHẶN ZOOM IOS ──────────────────────────
-document.addEventListener('gesturestart',  e => e.preventDefault());
-document.addEventListener('gesturechange', e => e.preventDefault());
-document.addEventListener('touchmove', e => {
-  if (e.touches.length > 1) e.preventDefault();
-}, { passive: false });
-
-// ── STANDALONE PWA ─────────────────────────
-if (window.navigator.standalone) {
-  document.documentElement.style.height = '100%';
-  document.body.style.height = '100%';
-}
 </script>
 </body>
 </html>
